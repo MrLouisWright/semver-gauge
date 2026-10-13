@@ -1,0 +1,50 @@
+name: 'semver-gauge'
+description: 'Check the version bump matches the changes (breaking/feat/fix) and that CHANGELOG has an entry for it'
+author: 'Louis Wright'
+branding: { icon: 'tag', color: 'blue' }
+inputs:
+  path: { description: 'Project directory (default: repository root)', default: '.' }
+  base: { description: 'Git ref of the last release (default: latest v* tag)', default: '' }
+  changelog: { description: 'Changelog path (default: CHANGELOG.md)', default: '' }
+  fail-on: { description: 'critical | high | medium | low | info | none', default: 'high' }
+  config: { description: 'Path to JSON config file', default: '' }
+  sarif: { description: 'Write SARIF to this path', default: '' }
+  json: { description: 'Write JSON report to this path', default: '' }
+  job-summary: { description: 'Write the Markdown report to the job summary (true/false)', default: 'true' }
+  args: { description: 'Extra CLI arguments', default: '' }
+outputs:
+  markdown-file: { description: 'Path of the Markdown report', value: '${{ steps.run.outputs.markdown-file }}' }
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      with: { node-version: '20' }
+    - id: run
+      shell: bash
+      env:
+        SG_PATH: ${{ inputs.path }}
+        SG_BASE: ${{ inputs.base }}
+        SG_CHANGELOG: ${{ inputs.changelog }}
+        SG_FAIL_ON: ${{ inputs.fail-on }}
+        SG_CONFIG: ${{ inputs.config }}
+        SG_SARIF: ${{ inputs.sarif }}
+        SG_JSON: ${{ inputs.json }}
+        SG_SUMMARY: ${{ inputs.job-summary }}
+        SG_ARGS: ${{ inputs.args }}
+        SG_BIN: ${{ github.action_path }}/bin/semver-gauge.js
+      run: |
+        md="$RUNNER_TEMP/semver-gauge.md"
+        args=("$SG_PATH" --fail-on "$SG_FAIL_ON" --markdown "$md")
+        [ -n "$SG_BASE" ] && args+=(--base "$SG_BASE")
+        [ -n "$SG_CHANGELOG" ] && args+=(--changelog "$SG_CHANGELOG")
+        [ -n "$SG_CONFIG" ] && args+=(--config "$SG_CONFIG")
+        [ -n "$SG_SARIF" ] && args+=(--sarif "$SG_SARIF")
+        [ -n "$SG_JSON" ] && args+=(--json "$SG_JSON")
+        set +e
+        # shellcheck disable=SC2086
+        node "$SG_BIN" "${args[@]}" $SG_ARGS
+        code=$?
+        set -e
+        echo "markdown-file=$md" >> "$GITHUB_OUTPUT"
+        if [ "$SG_SUMMARY" = "true" ] && [ -f "$md" ]; then cat "$md" >> "$GITHUB_STEP_SUMMARY"; fi
+        exit $code

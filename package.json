@@ -1,0 +1,54 @@
+{
+  "name": "semver-gauge",
+  "version": "1.0.0",
+  "description": "CI gate that checks your version bump matches the changes since the last release (Conventional Commits: breaking/feat/fix) and that CHANGELOG.md has a real entry for the new version. Text/JSON/SARIF/Markdown, allowlist with expiry, GitHub Action. Zero deps.",
+  "type": "module",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "semver-gauge": "bin/semver-gauge.js"
+  },
+  "files": [
+    "src",
+    "bin",
+    "action.yml",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": [
+    "semver",
+    "changelog",
+    "version",
+    "release",
+    "conventional-commits",
+    "ci",
+    "lint",
+    "sarif",
+    "cli",
+    "github-action"
+  ],
+  "author": "Louis Wright <hello@louiswright.co.uk> (https://github.com/MrLouisWright)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrLouisWright/semver-gauge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MrLouisWright/semver-gauge/issues"
+  },
+  "homepage": "https://github.com/MrLouisWright/semver-gauge#readme"
+}
