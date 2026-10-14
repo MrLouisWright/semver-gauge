@@ -57,7 +57,7 @@
         <a class="btn" href="https://github.com/MrLouisWright/semver-gauge">Source on GitHub</a>
       </div>
       <div class="badges">
-        <a href="https://github.com/MrLouisWright/semver-gauge/pkgs/npm/semver-gauge"><img src="https://img.shields.io/badge/GitHub%20Packages-%40mrlouiswright%2Fsemver-gauge-24292f?style=flat-square&amp;logo=github" alt="GitHub Packages: @mrlouiswright/semver-gauge" height="20"></a><a href="https://github.com/MrLouisWright/semver-gauge/releases"><img src="https://img.shields.io/github/v/tag/MrLouisWright/semver-gauge?style=flat-square&amp;label=version" alt="Latest version tag" height="20"></a>
+        <a href="https://github.com/MrLouisWright/semver-gauge/pkgs/npm/semver-gauge"><img src="https://img.shields.io/badge/GitHub%20Packages-%40mrlouiswright%2Fsemver--gauge-24292f?style=flat-square&amp;logo=github" alt="GitHub Packages: @mrlouiswright/semver-gauge" height="20"></a><a href="https://github.com/MrLouisWright/semver-gauge/releases"><img src="https://img.shields.io/github/v/tag/MrLouisWright/semver-gauge?style=flat-square&amp;label=version" alt="Latest version tag" height="20"></a>
         <a href="https://github.com/MrLouisWright/semver-gauge/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/MrLouisWright/semver-gauge/ci.yml?branch=main&amp;style=flat-square&amp;label=CI" alt="CI status" height="20"></a>
         <a href="https://github.com/MrLouisWright/semver-gauge/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License: MIT" height="20"></a>
         <a href="https://github.com/MrLouisWright/semver-gauge"><img src="https://img.shields.io/github/stars/MrLouisWright/semver-gauge?style=flat-square" alt="GitHub stars for semver-gauge" height="20"></a>
@@ -74,7 +74,7 @@
 <section class="sec" id="problem">
   <div class="wrap narrow">
     <h2><span class="h-idx">01</span> Why it exists</h2>
-    <p class="big">semver-gauge looks at the commits since your last release tag, works out the bump they need from Conventional Commits (feat → minor, fix/perf → patch, ! or a BREAKING CHANGE: footer → major) and compares that with the version in package.json. A breaking change shipped as a minor, a version that went backwards, a skipped version or a tag that already exists is reported with a severity and a concrete fix (&quot;Bump to 2.0.0&quot;). It also checks that CHANGELOG.md has a non-empty, correctly dated entry for the version, at the top.</p>
+    <p class="big">semver-gauge looks at the commits since your last release tag, works out the bump they need from Conventional Commits (feat → minor, fix/perf → patch, “!” or a “BREAKING CHANGE:” footer → major) and compares that with the version in package.json. A breaking change shipped as a minor, a version that went backwards, a skipped version or a tag that already exists is reported with a severity and a concrete fix (&quot;Bump to 2.0.0&quot;). It also checks that CHANGELOG.md has a non-empty, correctly dated entry for the version, at the top.</p>
     <p class="big">CLI, library and GitHub Action. Node.js 18+, zero runtime dependencies. By Louis Wright.</p>
   </div>
 </section>
