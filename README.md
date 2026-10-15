@@ -16,6 +16,23 @@ CLI, library and GitHub Action. Node.js 18+, **zero runtime dependencies**. By L
 - **No git needed:** `--commits <file>` and `--base-version` let you feed it commit messages from anywhere.
 - **Output:** text, JSON, SARIF 2.1.0 and Markdown; `--fail-on`; exit codes 0/1/2; allowlist entries with expiry dates.
 
+## Changesets, API diffs and monorepos
+
+```sh
+semver-gauge --source changesets                 # .changeset/*.md decides the bump
+semver-gauge --api dist/index.d.ts               # a removed/changed export needs a major bump
+semver-gauge --workspaces --require-bump         # per-package versions in a monorepo
+```
+
+- Commit messages are parsed with [commit-gauge](https://github.com/MrLouisWright/commit-gauge)'s shared parser (`commit-gauge/parser`). Use commit-gauge to lint them; semver-gauge only maps them to release levels.
+- `--api` compares the exported declarations of a `.d.ts` at the last release tag with the current file, ignoring whitespace and comments (api-extractor style, no TypeScript dependency).
+- `--workspaces` uses tags like `@scope/pkg@1.2.3` and only the commits that touch each package. Workspace hygiene (cycles, drift) is [monorepo-gauge](https://github.com/MrLouisWright/monorepo-gauge)'s job.
+
+### Module formats and types
+
+Ships **ESM and CommonJS** (`import` and `require` both work, via `exports`), with TypeScript declarations generated from the source at build time. Tests run on Node 18/20/22 in GitHub Actions (`test/`), including require/import checks against the packed tarball; releases are published with npm provenance.
+
+
 ## Rules
 
 | Rule | Default severity | What it catches |

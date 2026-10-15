@@ -7,7 +7,8 @@ export function tryGit(dir, args) { try { return git(dir, args); } catch { retur
 export const isRepo = (dir) => tryGit(dir, ['rev-parse', '--is-inside-work-tree']) === 'true';
 
 /** Latest reachable release tag (v1.2.3 or 1.2.3 by default). */
-export function latestTag(dir, match = ['v[0-9]*', '[0-9]*']) {
+export function latestTag(dir, match) {
+  match = match || ['v[0-9]*', '[0-9]*'];
   for (const m of match) { const t = tryGit(dir, ['describe', '--tags', '--abbrev=0', '--match', m, 'HEAD']); if (t) return t; }
   return null;
 }

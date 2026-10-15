@@ -1,17 +1,16 @@
-// Conventional Commits parsing (https://www.conventionalcommits.org/en/v1.0.0/).
-const HEADER = /^(?<type>[a-zA-Z]+)(?:\((?<scope>[^()\r\n]*)\))?(?<bang>!)?: (?<subject>\S.*)$/;
-const BREAKING = /^BREAKING[ -]CHANGE: /m;
+// Conventional Commits handling. Parsing comes from commit-gauge's shared parser (commit-gauge/parser);
+// semver-gauge only maps parsed commits to release levels and adds no lint rules of its own.
+import { parseCommit as parse } from 'commit-gauge/parser';
 
 export const DEFAULT_TYPES = { feat: 'minor', fix: 'patch', perf: 'patch', revert: 'patch', docs: 'none', style: 'none', refactor: 'none', test: 'none', build: 'none', ci: 'none', chore: 'none' };
 
-/** Parse one commit message. Returns { conventional, type, scope, breaking, subject, header, body }. */
+/**
+ * Parse one commit message (commit-gauge/parser) and add the fields semver-gauge relies on.
+ * @param {string} message
+ */
 export function parseCommit(message) {
-  const msg = String(message).replace(/\r\n/g, '\n').trim();
-  const [header, ...rest] = msg.split('\n');
-  const body = rest.join('\n').trim();
-  const m = HEADER.exec(header);
-  if (!m) return { conventional: false, header, body, breaking: BREAKING.test(body), type: null, scope: null, subject: header };
-  return { conventional: true, header, body, type: m.groups.type.toLowerCase(), scope: m.groups.scope ?? null, subject: m.groups.subject, breaking: !!m.groups.bang || BREAKING.test(body) };
+  const c = parse(message);
+  return { ...c, type: c.type ? c.type.toLowerCase() : null, subject: c.conventional ? c.subject : c.header, body: [c.body, ...c.footers.map((f) => `${f.token}: ${f.value}`)].filter(Boolean).join('\n\n') };
 }
 
 /** Bump a commit requires: major | minor | patch | none | unknown (non-conventional). */

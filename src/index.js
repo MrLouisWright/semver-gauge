@@ -5,6 +5,10 @@ import { parseCommit, commitLevel, isMergeOrRelease, DEFAULT_TYPES } from './com
 import { parseChangelog } from './changelog.js';
 import * as G from './git.js';
 import { buildReport, UsageError } from './core.js';
+import { readChangesets, changesetLevel, parseChangeset } from './changesets.js';
+import { extractApi, diffApi } from './api.js';
+import { listWorkspaces } from './workspaces.js';
+export { readChangesets, changesetLevel, parseChangeset, extractApi, diffApi, listWorkspaces };
 
 export { parse, valid, compare, diff, inc, parseCommit, commitLevel, parseChangelog };
 export * from './core.js';
@@ -24,6 +28,8 @@ export const RULES = {
   'unreleased-not-empty': { severity: 'low', title: 'Unreleased section still has content after a version bump' },
   'excessive-bump': { severity: 'low', title: 'Version bump is larger than the changes require' },
   'prerelease-mismatch': { severity: 'low', title: 'Pre-release version where the changelog or tag expects a release (or vice versa)' },
+  'api-breaking-change': { severity: 'high', title: 'Public API (.d.ts) has removed or changed exports, but the changes are not marked as breaking' },
+  'changeset-unknown-package': { severity: 'medium', title: 'A changeset names a package that is not in this repository' },
   'non-conventional-commit': { severity: 'info', title: 'Commit message is not a Conventional Commit, so its impact is unknown' },
   'pending-release': { severity: 'info', title: 'Unreleased changes are waiting for a version bump' },
 };
@@ -59,8 +65,8 @@ export function analyze(dir, opts = {}) {
   // ---- version vs changes ----
   if (!opts.changelogOnly) {
     const inGit = G.isRepo(dir);
-    let baseVersion = opts.baseVersion ?? null; let baseRef = opts.base ?? null;
-    if (!baseRef && !opts.commits && inGit) baseRef = G.latestTag(dir);
+    let baseVersion = opts.baseVersion ?? null; let baseRef = opts.base || null;
+    if (!baseRef && !opts.commits && inGit && opts.base !== false) baseRef = G.latestTag(dir, opts.tagMatch);
     if (baseRef && !baseVersion) {
       if (valid(baseRef.replace(/^.*@/, ''))) baseVersion = parse(baseRef.replace(/^.*@/, '')).raw;
       else if (inGit) { const pj = G.showFile(dir, baseRef, 'package.json'); try { baseVersion = pj ? JSON.parse(pj).version : null; } catch { baseVersion = null; } }
@@ -71,12 +77,31 @@ export function analyze(dir, opts = {}) {
     commits = commits.map((c) => ({ ...c, parsed: parseCommit(c.message) })).filter((c) => !isMergeOrRelease(c.parsed));
     info.commits = commits.length;
     let required = 'none'; let unknown = 0;
+    // Changesets as the source of truth (auto: when .changeset/ has entries for this package)
+    const changesets = opts.source === 'commits' ? null : readChangesets(opts.changesetsRoot || dir);
+    if (opts.source === 'changesets' && !changesets) throw new UsageError(`No .changeset directory in ${opts.changesetsRoot || dir}`);
+    const pkgName = opts.packageName || pkg.name;
+    const cs = changesets ? changesetLevel(changesets, pkgName) : { level: 'none', files: [] };
+    const useChangesets = opts.source === 'changesets' || (changesets && changesets.length > 0 && opts.source !== 'commits');
+    info.source = useChangesets ? 'changesets' : 'commits';
+    if (useChangesets) { required = cs.level; info.changesets = cs.files; commits = []; info.commits = 0; }
     for (const c of commits) {
       const lvl = commitLevel(c.parsed, types);
       if (lvl === 'unknown') { unknown++; add('non-conventional-commit', `${c.sha ? short(c.sha) + ' ' : ''}"${c.parsed.header.slice(0, 72)}" is not a Conventional Commit`, 'Use "type(scope): subject" (feat, fix, perf, docs, chore, …) and "!" or a BREAKING CHANGE: footer for breaking changes.', { subject: c.sha || c.parsed.header }); continue; }
       if (rank(lvl) > rank(required)) required = lvl;
     }
     if (unknown && required === 'none' && opts.unknownAs) required = opts.unknownAs;
+    // API-surface diff of a .d.ts against the last release
+    if (opts.api && baseRef && inGit) {
+      const beforeText = opts.apiBase != null ? opts.apiBase : G.showFile(dir, baseRef, opts.api);
+      const afterPath = join(dir, opts.api);
+      if (beforeText != null && existsSync(afterPath)) {
+        const d = diffApi(beforeText, readFileSync(afterPath, 'utf8'));
+        info.api = d;
+        if (d.level === 'major' && required !== 'major') add('api-breaking-change', `${opts.api}: ${[...d.removed.map((n) => `removed ${n}`), ...d.changed.map((n) => `changed ${n}`)].slice(0, 5).join(', ')} since ${baseRef}, but no commit/changeset is marked breaking`, 'Mark the change as breaking ("feat!:" or a BREAKING CHANGE: footer / a major changeset) and bump the major version, or restore the old signature.', { file: opts.api });
+        if (rank(d.level) > rank(required)) required = d.level;
+      }
+    }
     if (baseVersion && valid(baseVersion)) {
       const base = parse(baseVersion);
       // 0.x: breaking -> minor, everything else -> patch
@@ -147,4 +172,30 @@ export function check(dir, opts = {}, config = {}, configFile) {
   const tool = { name: 'semver-gauge', version: opts.toolVersion || '1.0.0', rules: RULES, emoji: '🏷️', defaultFile: 'package.json' };
   const line = info.baseVersion ? `${info.baseVersion} → ${info.version} (${info.commits} commit(s) since ${info.baseRef || 'base'}; changes need: ${info.required}${info.expected ? `, expected ${info.expected}` : ''})` : `version ${info.version}${opts.changelogOnly ? ' (changelog only)' : ' (no previous release found)'}`;
   return buildReport(tool, info.version ? `version ${info.version}` : 'package', findings, config, { now: opts.now, configFile, summaryLine: line, info });
+}
+
+/**
+ * Check every workspace package separately: its own tag (<name>@x.y.z), the commits touching its
+ * folder, root-level changesets naming it, and its own CHANGELOG. Hygiene checks are monorepo-gauge's job.
+ * @param {string} root
+ * @param {object} [opts]  same as check(), plus includePrivate
+ * @param {object} [config]
+ */
+export function checkWorkspaces(root, opts = {}, config = {}, configFile) {
+  const wss = listWorkspaces(root).filter((w) => opts.includePrivate || !w.private);
+  if (!wss.length) throw new UsageError(`No workspace packages found in ${root} (package.json "workspaces" or pnpm-workspace.yaml)`);
+  const findings = []; const packages = [];
+  const names = new Set(wss.map((w) => w.name));
+  for (const w of wss) {
+    const esc = w.name;
+    const { info, findings: f } = analyze(w.dir, { types: config.types, requireBump: config.requireBump, ...opts, changesetsRoot: root, packageName: w.name, tagMatch: [`${esc}@[0-9]*`, `${esc}@v[0-9]*`], base: opts.base ?? (G.latestTag(w.dir, [`${esc}@[0-9]*`, `${esc}@v[0-9]*`]) || false) });
+    packages.push({ name: w.name, path: w.path, ...info });
+    for (const x of f) findings.push({ ...x, message: `${w.name}: ${x.message}`, file: x.file ? `${w.path}/${x.file}` : w.path });
+  }
+  if (opts.source !== 'commits') {
+    for (const c of readChangesets(root) || []) for (const n of Object.keys(c.releases)) if (!names.has(n)) findings.push({ rule: 'changeset-unknown-package', severity: RULES['changeset-unknown-package'].severity, message: `${c.file} bumps "${n}", which is not a workspace package`, fix: 'Fix the package name in the changeset front matter.', file: c.file });
+  }
+  const tool = { name: 'semver-gauge', version: opts.toolVersion || '1.0.0', rules: RULES, emoji: '🏷️', defaultFile: 'package.json' };
+  const line = packages.map((p) => `${p.name} ${p.baseVersion ? `${p.baseVersion} → ` : ''}${p.version} (needs ${p.required})`).join('; ');
+  return buildReport(tool, `${packages.length} workspace package(s)`, findings, config, { now: opts.now, configFile, summaryLine: line, packages });
 }

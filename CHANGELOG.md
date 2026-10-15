@@ -1,6 +1,13 @@
 # Changelog
 
-## 1.0.0 (2026-10-14)
+## 1.0.0 (2026-10-15)
+
+- **Reuses commit-gauge's parser** (`commit-gauge/parser`, `^1.0.0`) instead of its own Conventional Commits regex; semver-gauge adds no lint rules.
+- **Changesets support:** `.changeset/*.md` as an alternative source of truth (`--source auto|commits|changesets`, auto-detected). The highest changeset level for the package sets the required bump.
+- **API-surface diff** (`--api <file.d.ts>`, `--api-base`): removed or changed exports require a major bump; a new `api-breaking-change` rule catches breaking changes labelled as `fix`/`feat`. `extractApi` / `diffApi` are exported.
+- **Monorepo support** (`--workspaces`, `checkWorkspaces`): each workspace package is checked against its own `<name>@x.y.z` tag, the commits under its folder, root changesets naming it and its own CHANGELOG. Reads the workspace list only; hygiene checks stay in monorepo-gauge. New `changeset-unknown-package` rule.
+- Dual ESM + CJS build, generated `.d.ts`, require/import CI checks.
+
 
 First release, by Louis Wright.
 
