@@ -1,5 +1,7 @@
 # semver-gauge
 
+[![npm version](https://img.shields.io/npm/v/semver-gauge.svg)](https://www.npmjs.com/package/semver-gauge) [![CI](https://github.com/MrLouisWright/semver-gauge/actions/workflows/ci.yml/badge.svg)](https://github.com/MrLouisWright/semver-gauge/actions/workflows/ci.yml) [![Node](https://img.shields.io/node/v/semver-gauge.svg)](https://nodejs.org) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 > A CI gate that checks your version bump matches what changed, and that the CHANGELOG has a real entry for it.
 
 `semver-gauge` looks at the commits since your last release tag, works out the bump they need from [Conventional Commits](https://www.conventionalcommits.org/) (`feat` → minor, `fix`/`perf` → patch, `!` or a `BREAKING CHANGE:` footer → major) and compares that with the version in `package.json`. A breaking change shipped as a minor, a version that went backwards, a skipped version or a tag that already exists is reported with a severity and a **concrete fix** ("Bump to 2.0.0"). It also checks that `CHANGELOG.md` has a non-empty, correctly dated entry for the version, at the top.
