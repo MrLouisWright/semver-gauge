@@ -1,6 +1,6 @@
 {
   "name": "semver-gauge",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "CI gate that checks your version bump matches the changes since the last release (Conventional Commits: breaking/feat/fix) and that CHANGELOG.md has a real entry for the new version. Text/JSON/SARIF/Markdown, allowlist with expiry, GitHub Action. One dependency: commit-gauge (shared Conventional Commits parser).",
   "type": "module",
   "main": "./dist/index.cjs",

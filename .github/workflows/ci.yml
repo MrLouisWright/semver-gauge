@@ -25,3 +25,11 @@ jobs:
         run: |
           node bin/semver-gauge.js --fail-on high
           node bin/semver-gauge.js --changelog-only --fail-on medium
+  action:
+    # Runs the Action from a clean checkout (no node_modules) so a missing dependency install fails CI.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with: { persist-credentials: false, fetch-depth: 0 }
+      - uses: ./
+        with: { path: '.', fail-on: high }

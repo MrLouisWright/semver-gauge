@@ -175,7 +175,7 @@ jobs:
 | `job-summary` | Add the Markdown report to the job summary | `true` |
 | `args` | Extra CLI arguments | |
 
-The action runs the bundled CLI with Node 20; it has no dependencies to install. Pin it to a commit SHA if your policy requires it.
+The action sets up Node 20, installs semver-gauge's runtime dependency (commit-gauge) from its lockfile with `npm ci --omit=dev --ignore-scripts`, then runs the CLI. Pin it to a commit SHA if your policy requires it.
 
 The checkout needs `fetch-depth: 0` so the tags and history are available.
 
