@@ -16,7 +16,7 @@ test('commit parsing is delegated to commit-gauge/parser', () => {
   const c = parseCommit('feat(x)!: y\n\nBREAKING CHANGE: z');
   assert.equal(c.breaking, cgParse('feat(x)!: y').breaking);
   assert.equal(c.type, 'feat'); assert.equal(c.conventional, true);
-  assert.equal(JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).dependencies['commit-gauge'], '^1.0.0');
+  assert.equal(JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).dependencies['commit-gauge'], '^1.1.0');
 });
 
 test('changesets: parse front matter and use as source of truth', () => {

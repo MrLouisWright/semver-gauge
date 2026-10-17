@@ -42,7 +42,7 @@
       <p class="eyebrow"><span class="dot" aria-hidden="true"></span> GitHub Packages · MIT · Node ≥ 18</p>
       <h1>semver-gauge</h1>
       <p class="tagline">A CI gate that checks your version bump matches what changed, and that the CHANGELOG has a real entry for it.</p>
-      <p class="lede">CI gate that checks your version bump matches the changes since the last release (Conventional Commits: breaking/feat/fix) and that CHANGELOG.md has a real entry for the new version. Text/JSON/SARIF/Markdown, allowlist with expiry, GitHub Action. Zero deps.</p>
+      <p class="lede">CI gate that checks your version bump matches the changes since the last release (Conventional Commits: breaking/feat/fix) and that CHANGELOG.md has a real entry for the new version. Text/JSON/SARIF/Markdown, allowlist with expiry, GitHub Action. One dependency: commit-gauge (shared Conventional Commits parser).</p>
       <ol class="steps">
         <li><p class="step-t"><span>1</span> Point the <code>@mrlouiswright</code> scope at GitHub Packages in <code>.npmrc</code></p>
         <div class="install"><code>@mrlouiswright:registry=https://npm.pkg.github.com</code><button class="copy" type="button" data-copy="@mrlouiswright:registry=https://npm.pkg.github.com" aria-label="Copy .npmrc line">Copy</button></div></li>
@@ -70,7 +70,7 @@
   <div class="wrap narrow">
     <h2><span class="h-ic" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5 2.5 20h19L12 3.5Z"/><path d="M12 10v4.5M12 17.5v.01"/></svg></span> Why it exists</h2>
     <p class="big">semver-gauge looks at the commits since your last release tag, works out the bump they need from Conventional Commits (feat → minor, fix/perf → patch, “!” or a “BREAKING CHANGE:” footer → major) and compares that with the version in package.json. A breaking change shipped as a minor, a version that went backwards, a skipped version or a tag that already exists is reported with a severity and a concrete fix (&quot;Bump to 2.0.0&quot;). It also checks that CHANGELOG.md has a non-empty, correctly dated entry for the version, at the top.</p>
-    <p class="big">CLI, library and GitHub Action. Node.js 18+, zero runtime dependencies. By Louis Wright.</p>
+    <p class="big">CLI, library and GitHub Action. Node.js 18+, one runtime dependency (commit-gauge). By Louis Wright.</p>
   </div>
 </section>
 

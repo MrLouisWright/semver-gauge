@@ -6,7 +6,7 @@
 
 `semver-gauge` looks at the commits since your last release tag, works out the bump they need from [Conventional Commits](https://www.conventionalcommits.org/) (`feat` → minor, `fix`/`perf` → patch, `!` or a `BREAKING CHANGE:` footer → major) and compares that with the version in `package.json`. A breaking change shipped as a minor, a version that went backwards, a skipped version or a tag that already exists is reported with a severity and a **concrete fix** ("Bump to 2.0.0"). It also checks that `CHANGELOG.md` has a non-empty, correctly dated entry for the version, at the top.
 
-CLI, library and GitHub Action. Node.js 18+, **zero runtime dependencies**. By Louis Wright.
+CLI, library and GitHub Action. Node.js 18+, one runtime dependency ([commit-gauge](https://www.npmjs.com/package/commit-gauge), for its Conventional Commits parser). By Louis Wright.
 
 ## Features
 
@@ -191,7 +191,7 @@ console.log(formatText(report, { failOn: 'high' }));
 
 ## Requirements
 
-Node.js 18 or newer. Zero runtime dependencies.
+Node.js 18 or newer. One runtime dependency: commit-gauge.
 
 ## Support
 
