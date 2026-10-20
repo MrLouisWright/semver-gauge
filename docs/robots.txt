@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://mrlouiswright.github.io/semver-gauge/sitemap.xml
