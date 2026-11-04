@@ -181,6 +181,12 @@ The checkout needs `fetch-depth: 0` so the tags and history are available.
 
 ## Library
 
+Install it in your project first:
+
+```bash
+npm install --save-dev semver-gauge
+```
+
 ```js
 import { check, formatText } from 'semver-gauge';
 const report = check('.', { base: 'v1.2.0' });
